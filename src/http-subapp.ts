@@ -1,9 +1,10 @@
 import {
-  ApplicationConfig, BindingKey,
+  ApplicationConfig,
+  BindingKey,
   ContextTags,
   CoreBindings,
   inject,
-  lifeCycleObserver
+  lifeCycleObserver,
 } from '@loopback/core';
 import {SocketIoApplication} from '@loopback/socketio';
 import {SocketIoController} from './controllers';
@@ -23,10 +24,9 @@ export class SubApplicationForHttp extends SocketIoApplication {
     @inject(CoreBindings.APPLICATION_CONFIG) mainAppConfig: ApplicationConfig,
   ) {
     const options = {...mainAppConfig};
-    options.rest = {
-      ...options.rest,
+    options.httpServerOptions = {
       port: +(process.env.HTTP_PORT ?? 3001),
-      protocol: 'http',
+      host: process.env.HOST,
     };
     super(options);
 
