@@ -52,15 +52,17 @@
     "@loopback/rest": "^7.0.1",
     "@loopback/rest-explorer": "^3.0.1",
     "@loopback/service-proxy": "^3.0.1",
+    "@loopback/socketio": "^0.5.1",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
     "@loopback/build": "^6.2.4",
-    "source-map-support": "^0.5.19",
+    "@loopback/eslint-config": "^10.0.0",
     "@loopback/testlab": "^3.2.6",
     "@types/node": "^10.17.35",
-    "@loopback/eslint-config": "^10.0.0",
     "eslint": "^7.9.0",
+    "socket.io-client": "^4.4.1",
+    "source-map-support": "^0.5.19",
     "typescript": "~4.0.2"
   }
 }

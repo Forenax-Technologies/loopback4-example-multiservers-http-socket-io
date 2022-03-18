@@ -1,21 +1,14 @@
 import {
-  Application,
-  ApplicationConfig,
-  Binding,
-  BindingKey,
+  ApplicationConfig, BindingKey,
   ContextTags,
   CoreBindings,
   inject,
-  lifeCycleObserver,
+  lifeCycleObserver
 } from '@loopback/core';
-import {HealthComponent, HealthTags} from '@loopback/health';
-import {
-  registerMiddleware,
-  RestApplication,
-  RestComponent,
-} from '@loopback/rest';
+import {SocketIoApplication} from '@loopback/socketio';
+import {SocketIoController} from './controllers';
 
-export const SUB_APPLICATION_HTTP = BindingKey.create<Application>(
+export const SUB_APPLICATION_HTTP = BindingKey.create<SocketIoApplication>(
   'sub-application-for-http',
 );
 
@@ -25,53 +18,31 @@ export const SUB_APPLICATION_HTTP = BindingKey.create<Application>(
 @lifeCycleObserver('', {
   tags: {[ContextTags.KEY]: SUB_APPLICATION_HTTP},
 })
-export class SubApplicationForHttp extends Application {
+export class SubApplicationForHttp extends SocketIoApplication {
   constructor(
-    @inject(CoreBindings.APPLICATION_INSTANCE) mainApp: RestApplication,
     @inject(CoreBindings.APPLICATION_CONFIG) mainAppConfig: ApplicationConfig,
   ) {
     const options = {...mainAppConfig};
     options.rest = {
       ...options.rest,
-      // Set the port number for the health endpoint
-      // 1. `HTTP_PORT environment var
-      // 2. 0
-      // 3. The next port for the billing app
-      port: +(process.env.HTTP_PORT ?? options.rest.port === 0
-        ? 0
-        : options.rest.port + 1),
+      port: +(process.env.HTTP_PORT ?? 3001),
       protocol: 'http',
     };
     super(options);
 
-    // Mount Rest component
-    this.component(RestComponent);
+    this.socketServer.use((socket, next) => {
+      console.info('Global middleware - socket:', socket.id);
+      next();
+    });
 
-    // Mount Health component
-    this.component(HealthComponent);
-
-    // Register a middleware to handle https redirect
-    registerMiddleware(
-      this,
-      (ctx, next) => {
-        if (ctx.request.path !== '/health') {
-          ctx.response.redirect(`${mainApp.restServer.rootUrl}/ping`);
-          return ctx.response;
-        }
-        return next();
-      },
-      {},
-    );
-
-    // Register live/ready check extensions from the main application
-    mainApp
-      .find(
-        b =>
-          b.tagNames.includes(HealthTags.LIVE_CHECK) ||
-          b.tagNames.includes(HealthTags.READY_CHECK),
-      )
-      .forEach(b => {
-        this.add(b as Binding<unknown>);
-      });
+    const ns = this.socketServer.route(SocketIoController);
+    ns.use((socket, next) => {
+      console.info(
+        'Middleware for namespace %s - socket: %s',
+        socket.nsp.name,
+        socket.id,
+      );
+      next();
+    });
   }
 }

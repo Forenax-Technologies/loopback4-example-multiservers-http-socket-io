@@ -1,10 +1,10 @@
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
 import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication, RestServer} from '@loopback/rest';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
-  RestExplorerComponent,
+  RestExplorerComponent
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
@@ -48,7 +48,7 @@ export class DemoApplication extends BootMixin(
 
   async getHttpUrl() {
     const subApp = await this.get(SUB_APPLICATION_HTTP);
-    const server = await subApp.getServer(RestServer);
+    const server = subApp.socketServer;
     return server.url;
   }
 }
